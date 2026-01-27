@@ -16,6 +16,7 @@ setup(
         "statsmodels>=0.13.0",
         "scikit-learn>=1.0.0",
         "matplotlib>=3.6.0,<4.0",
+        "seaborn>=0.12.0",
         "openpyxl>=3.1.0,<4.0",
     ],
     extras_require={
