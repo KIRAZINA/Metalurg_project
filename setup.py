@@ -13,6 +13,7 @@ setup(
         "numpy>=1.23.0,<2.0",
         "pandas>=1.5.0,<2.0",
         "scipy>=1.9.0,<1.13",
+        "statsmodels>=0.13.0",
         "matplotlib>=3.6.0,<4.0",
         "openpyxl>=3.1.0,<4.0",
     ],
