@@ -98,6 +98,8 @@ MIT
 
 ## 👨‍💻 Author
 
+**KIRAZINA** ([GitHub](https://github.com/KIRAZINA))
+
 Developed as a tool for analyzing physicochemical properties of materials.
 
 ---
