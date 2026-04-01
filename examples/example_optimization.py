@@ -119,7 +119,7 @@ def example_optimization(file_path: str, output_dir: str):
             logging.info(f"  Total input impurities: {sol.total_impurity_input:.6f}")
             logging.info(f"  Total output impurities: {sol.total_impurity_output:.6f}")
             logging.info(f"  Purification efficiency: {sol.efficiency:.2f}%")
-            logging.info()
+            logging.info("")
     
     # Save reports
     logging.info("=" * 80)
@@ -130,8 +130,14 @@ def example_optimization(file_path: str, output_dir: str):
     opt_report_path = Path(output_dir) / "optimization_report.csv"
     opt_df = generate_optimization_report(inverse_regressor, optimization_targets, str(opt_report_path))
     
+    # Generate Pareto front scatter plot
+    from test_metal.plotting import plot_pareto_front
+    plot_path = plot_pareto_front(pareto_solutions, output_dir, "pareto_front")
+    
     logging.info(f"✓ Optimization report saved to {opt_report_path}")
-    logging.info(f"✓ Pareto front saved to {str(opt_report_path).replace('.csv', '_pareto_front.csv')}")
+    logging.info(f"✓ Pareto front CSV saved to {str(opt_report_path).replace('.csv', '_pareto_front.csv')}")
+    if plot_path:
+        logging.info(f"✓ Pareto front plot saved to {plot_path}")
     
     logging.info("\n" + "=" * 80)
     logging.info("COMPLETED")
