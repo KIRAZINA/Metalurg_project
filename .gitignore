@@ -92,6 +92,8 @@ web/backend/.env
 web/frontend/node_modules/
 web/frontend/dist/
 web/frontend/.tsbuildinfo
+web/frontend/src/**/*.js
+web/frontend/src/**/*.jsx
 
 # Streamlit
 web/streamlit/__pycache__/
