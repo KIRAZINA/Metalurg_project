@@ -2,10 +2,9 @@
 Shared fixtures and configuration for all tests.
 """
 
-import pytest
 import numpy as np
 import pandas as pd
-from pathlib import Path
+import pytest
 
 from test_metal.features import COLUMN_NAMES
 from test_metal.modeling import OLSResult
@@ -24,6 +23,7 @@ def synthetic_data(n: int = 200):
 def preprocessed_data(synthetic_data):
     """Generate preprocessed synthetic data."""
     from test_metal.preprocessing import preprocess
+
     return preprocess(synthetic_data)
 
 
@@ -32,7 +32,7 @@ def mock_ols_result():
     """Create a mock OLS regression result for testing."""
     x_data = np.array([0.1, 0.15, 0.2, 0.25, 0.3])
     y_data = 0.02 + 0.5 * x_data
-    
+
     return OLSResult(
         x_col="steel_S_before",
         y_col="steel_S_after",
@@ -62,7 +62,7 @@ def poor_model_ols_result():
     """Create a low-quality OLS result (R² < 0.5)."""
     x_data = np.array([0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4])
     y_data = np.array([0.05, 0.06, 0.08, 0.07, 0.09, 0.08, 0.10])
-    
+
     return OLSResult(
         x_col="steel_Si_before",
         y_col="steel_Si_after",
@@ -113,7 +113,7 @@ def two_element_models():
         mean_ci_low=np.linspace(0.03, 0.16, 12),
         mean_ci_high=np.linspace(0.06, 0.18, 12),
     )
-    
+
     # Silicon model
     si_model = OLSResult(
         x_col="steel_Si_before",
@@ -137,7 +137,7 @@ def two_element_models():
         mean_ci_low=np.linspace(0.07, 0.22, 12),
         mean_ci_high=np.linspace(0.08, 0.24, 12),
     )
-    
+
     return [s_model, si_model]
 
 
