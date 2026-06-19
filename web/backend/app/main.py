@@ -16,6 +16,9 @@ from app.core.database import engine, init_db
 from app.core.exceptions import register_exception_handlers
 from app.core.logging_ import setup_logging
 from app.core.metrics import setup_metrics
+import app.infrastructure.redis_compat as redis_compat
+
+redis_compat.apply()
 
 
 @asynccontextmanager

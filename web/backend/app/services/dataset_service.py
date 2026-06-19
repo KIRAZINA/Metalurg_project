@@ -67,12 +67,7 @@ class DatasetService:
         s3_key = build_s3_key(
             user.id, file.filename or "unknown", upload_result["hash_sha256"]
         )
-        async with await storage._get_client() as client:
-            await client.copy_object(
-                Bucket=storage.bucket,
-                CopySource={"Bucket": storage.bucket, "Key": upload_result["key"]},
-                Key=s3_key,
-            )
+        await storage.copy_object(upload_result["key"], s3_key)
         await storage.delete(upload_result["key"])
 
         dataset = Dataset(

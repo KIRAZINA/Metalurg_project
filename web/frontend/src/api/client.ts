@@ -61,7 +61,7 @@ async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
 
   let res = await exec();
 
-  if (res.status === 401 && refreshToken) {
+  if (res.status === 401 && refreshToken && !path.startsWith("/auth/login")) {
     const refreshRes = await fetch(`${API_BASE}/auth/refresh`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -80,8 +80,14 @@ async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
   }
 
   if (!res.ok) {
-    const text = await res.text();
-    throw new ApiError(res.status, text);
+    let message: string;
+    try {
+      const body = await res.json();
+      message = body.detail || body.message || res.statusText;
+    } catch {
+      message = res.statusText;
+    }
+    throw new ApiError(res.status, message);
   }
 
   if (res.status === 204) return undefined as T;

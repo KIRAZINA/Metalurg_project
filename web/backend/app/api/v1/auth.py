@@ -1,7 +1,6 @@
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -16,6 +15,7 @@ from app.core.security import (
 )
 from app.domain.user import User
 from app.schemas.auth import (
+    LoginRequest,
     LoginResponse,
     RefreshRequest,
     RegisterRequest,
@@ -49,20 +49,21 @@ async def register(body: RegisterRequest, db: AsyncSession = Depends(get_db)) ->
 
 @router.post("/login", response_model=LoginResponse)
 async def login(
-    form: OAuth2PasswordRequestForm = Depends(),
+    body: LoginRequest,
     db: AsyncSession = Depends(get_db),
 ) -> dict:
-    result = await db.execute(select(User).where(User.email == form.username))
+    result = await db.execute(select(User).where(User.email == body.email))
     user = result.scalar_one_or_none()
-    if not user or not verify_password(form.password, user.hashed_password):
+    if not user or not verify_password(body.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid refresh token",
-        ) from None
+            detail="Invalid email or password",
+        )
     return {
         "access_token": create_access_token(str(user.id)),
         "refresh_token": create_refresh_token(str(user.id)),
         "token_type": "bearer",
+        "user": user,
     }
 
 

@@ -1,3 +1,7 @@
+import app.infrastructure.redis_compat as redis_compat
+
+redis_compat.apply()
+
 from celery import Celery
 
 from app.core.config import settings

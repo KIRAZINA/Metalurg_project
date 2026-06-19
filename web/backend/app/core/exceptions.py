@@ -80,12 +80,12 @@ async def validation_exception_handler(
         content={
             "type": "about:blank",
             "title": "Validation Error",
-            "status": status.HTTP_422_UNPROCESSABLE_ENTITY,
+            "status": status.HTTP_422_UNPROCESSABLE_CONTENT,
             "detail": "Request validation failed",
             "code": "validation_error",
             "errors": errors,
         },
-        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
     )
 
 

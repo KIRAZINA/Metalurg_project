@@ -11,16 +11,6 @@ class RegisterRequest(BaseModel):
     role: str | None = Field(default=None, pattern=r"^(viewer|analyst|admin)$")
 
 
-class LoginResponse(BaseModel):
-    access_token: str
-    refresh_token: str
-    token_type: str = "bearer"
-
-
-class RefreshRequest(BaseModel):
-    refresh_token: str
-
-
 class UserResponse(BaseModel):
     id: UUID
     email: str
@@ -30,3 +20,19 @@ class UserResponse(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class LoginResponse(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+    user: UserResponse
+
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+
+class RefreshRequest(BaseModel):
+    refresh_token: str

@@ -15,8 +15,10 @@ class StorageClient:
         self.endpoint = settings.S3_ENDPOINT
         self.bucket = settings.S3_BUCKET
 
-    async def _get_client(self):
-        return await self.session.create_client(
+    # aiobotocore >= 2.12: create_client() returns an async context manager directly,
+    # not a coroutine.  No await — just enter with "async with".
+    def _get_client(self):
+        return self.session.create_client(
             "s3",
             endpoint_url=self.endpoint,
             aws_access_key_id=settings.S3_ACCESS_KEY,
@@ -35,7 +37,7 @@ class StorageClient:
             raise ValueError(
                 f"File too large (max {settings.MAX_UPLOAD_SIZE_MB} MB)"
             )
-        async with await self._get_client() as client:
+        async with self._get_client() as client:
             await client.put_object(
                 Bucket=self.bucket,
                 Key=key,
@@ -45,11 +47,19 @@ class StorageClient:
         return {"key": key, "size": size, "hash_sha256": hasher.hexdigest()}
 
     async def ensure_bucket(self) -> None:
-        async with await self._get_client() as client:
+        async with self._get_client() as client:
             try:
                 await client.create_bucket(Bucket=self.bucket)
             except client.exceptions.BucketAlreadyOwnedByYou:
                 pass
+
+    async def copy_object(self, source_key: str, dest_key: str) -> None:
+        async with self._get_client() as client:
+            await client.copy_object(
+                Bucket=self.bucket,
+                CopySource={"Bucket": self.bucket, "Key": source_key},
+                Key=dest_key,
+            )
 
     async def upload_file(self, file: UploadFile, key: str) -> dict:
         hasher = hashlib.sha256()
@@ -68,7 +78,7 @@ class StorageClient:
                     f"File too large (max {settings.MAX_UPLOAD_SIZE_MB} MB)"
                 )
         content = b"".join(chunks)
-        async with await self._get_client() as client:
+        async with self._get_client() as client:
             await client.put_object(
                 Bucket=self.bucket,
                 Key=key,
@@ -78,13 +88,13 @@ class StorageClient:
         return {"key": key, "size": size, "hash_sha256": hasher.hexdigest()}
 
     async def download_bytes(self, key: str) -> bytes:
-        async with await self._get_client() as client:
+        async with self._get_client() as client:
             resp = await client.get_object(Bucket=self.bucket, Key=key)
             async with resp["Body"] as stream:
                 return await stream.read()  # type: ignore[no-any-return]
 
     async def get_presigned_url(self, key: str, expires_in: int = 3600) -> str:
-        async with await self._get_client() as client:
+        async with self._get_client() as client:
             return await client.generate_presigned_url(  # type: ignore[no-any-return]
                 "get_object",
                 Params={"Bucket": self.bucket, "Key": key},
@@ -92,7 +102,7 @@ class StorageClient:
             )
 
     async def delete(self, key: str) -> None:
-        async with await self._get_client() as client:
+        async with self._get_client() as client:
             await client.delete_object(Bucket=self.bucket, Key=key)
 
 
