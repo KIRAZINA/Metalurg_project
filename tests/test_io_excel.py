@@ -17,7 +17,19 @@ class TestLoadExcel:
         args, kwargs = mock_read_excel.call_args
         assert kwargs["header"] == 3
         assert kwargs["usecols"] == "B:CN"
-        assert kwargs["engine"] == "openpyxl"
+        assert kwargs["engine"] == "xlrd"
+
+    @patch("test_metal.io.excel.Path.exists", return_value=True)
+    @patch("test_metal.io.excel.pd.read_excel")
+    def test_load_excel_engine_by_extension(self, mock_read_excel, mock_exists):
+        """Engine is derived from the file suffix, not hardcoded."""
+        from test_metal.io.excel import resolve_engine
+
+        mock_read_excel.return_value = pd.DataFrame({"a": [1]})
+        load_excel("test.xlsx")
+        assert mock_read_excel.call_args.kwargs["engine"] == "openpyxl"
+        assert resolve_engine(Path("book.xls")) == "xlrd"
+        assert resolve_engine(Path("unknown.csv")) is None
 
     @patch("test_metal.io.excel.Path.exists", return_value=True)
     @patch("test_metal.io.excel.pd.read_excel")

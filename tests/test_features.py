@@ -114,7 +114,7 @@ class TestBuildOptimizationTargets:
         assert "Sulfur (S)" in targets
         assert "Silicon (Si)" in targets
         assert targets["Sulfur (S)"][0] == "steel_S_before"
-        assert abs(targets["Sulfur (S)"][1] - 0.05) < 0.001
+        assert abs(targets["Sulfur (S)"][1] - 0.07) < 0.001
 
     def test_no_matching_models_returns_empty(self):
         df = pd.DataFrame({"steel_S_after": [0.05]})

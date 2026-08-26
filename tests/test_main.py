@@ -3,7 +3,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import test_metal.__main__  # noqa: F401
-from main import configure_logging, main
+from test_metal.cli import configure_logging, main
 
 
 class TestConfigureLogging:
@@ -19,24 +19,24 @@ class TestConfigureLogging:
 
 
 class TestMain:
-    @patch("main.run_pipeline_with_io")
-    def test_main_calls_pipeline(self, mock_run):
+    @patch("test_metal.cli.run_pipeline_with_io")
+    def test_main_calls_pipeline(self, mock_run, tmp_path):
         test_file = Path(__file__).resolve().parent.parent / "source_data.xls"
         if not test_file.exists():
             test_file = Path("source_data.xls")
-        test_args = ["prog", "--file", str(test_file), "--output", str(Path("outputs"))]
+        test_args = ["prog", "--file", str(test_file), "--output", str(tmp_path / "outputs")]
         with patch.object(sys, "argv", test_args):
             main()
         mock_run.assert_called_once()
 
-    @patch("main.run_pipeline_with_io")
-    def test_main_with_custom_args(self, mock_run):
+    @patch("test_metal.cli.run_pipeline_with_io")
+    def test_main_with_custom_args(self, mock_run, tmp_path):
         test_args = [
             "prog",
             "--file",
             "data.xls",
             "--output",
-            "results",
+            str(tmp_path / "results"),
             "--mode",
             "before",
             "--missing-threshold",
@@ -55,16 +55,16 @@ class TestMain:
             main()
         mock_run.assert_called_once()
 
-    @patch("main.run_pipeline_with_io")
-    def test_main_file_not_found_handled(self, mock_run):
+    @patch("test_metal.cli.run_pipeline_with_io")
+    def test_main_file_not_found_handled(self, mock_run, tmp_path):
         mock_run.side_effect = FileNotFoundError("test error")
-        test_args = ["prog", "--file", "missing.xls", "--output", "outs"]
+        test_args = ["prog", "--file", "missing.xls", "--output", str(tmp_path / "outs")]
         with patch.object(sys, "argv", test_args):
             main()
 
-    @patch("main.run_pipeline_with_io")
-    def test_main_key_error_handled(self, mock_run):
+    @patch("test_metal.cli.run_pipeline_with_io")
+    def test_main_key_error_handled(self, mock_run, tmp_path):
         mock_run.side_effect = KeyError("test error")
-        test_args = ["prog", "--file", "data.xls", "--output", "outs"]
+        test_args = ["prog", "--file", "data.xls", "--output", str(tmp_path / "outs")]
         with patch.object(sys, "argv", test_args):
             main()

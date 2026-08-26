@@ -6,8 +6,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from test_metal.core.models import OLSResult
 from test_metal.features import COLUMN_NAMES
-from test_metal.modeling import OLSResult
 
 
 @pytest.fixture

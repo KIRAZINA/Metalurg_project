@@ -85,19 +85,22 @@ class TestSaveOptimizationCSV:
 
 class TestBuildParetoRows:
     def test_builds_dataframe_with_correct_columns(self):
+        # Element labels match the production schema (features.OPTIMIZATION_ELEMENTS)
+        # so build_pareto_rows can resolve them to their domain class and emit
+        # the correct per-element column names.
         solutions = [
             ParetoOptimum(
                 solution_id=0,
-                input_values={"S": 0.1, "Si": 0.2},
-                output_values={"S": 0.05, "Si": 0.1},
+                input_values={"Sulfur (S)": 0.1, "Silicon (Si)": 0.2},
+                output_values={"Sulfur (S)": 0.05, "Silicon (Si)": 0.1},
                 total_impurity_input=0.3,
                 total_impurity_output=0.15,
                 efficiency=50.0,
             ),
             ParetoOptimum(
                 solution_id=1,
-                input_values={"S": 0.2},
-                output_values={"S": 0.08},
+                input_values={"Sulfur (S)": 0.2},
+                output_values={"Sulfur (S)": 0.08},
                 total_impurity_input=0.2,
                 total_impurity_output=0.08,
                 efficiency=60.0,
@@ -105,20 +108,29 @@ class TestBuildParetoRows:
         ]
         df = build_pareto_rows(solutions)
         assert "solution_id" in df.columns
-        assert "S_input" in df.columns
-        assert "S_output" in df.columns
-        assert "Si_input" in df.columns
-        assert "Si_output" in df.columns
+        assert "Sulfur (S)_input" in df.columns
+        assert "Sulfur (S)_output" in df.columns
+        assert "Silicon (Si)_input" in df.columns
+        assert "Silicon (Si)_output" in df.columns
+        assert "Sulfur (S)_reduction_pct" in df.columns
+        assert "Silicon (Si)_growth_pct" in df.columns
         assert "total_impurity_input" in df.columns
         assert "total_impurity_output" in df.columns
-        assert "efficiency_%" in df.columns
+        assert "efficiency_%" not in df.columns
         assert len(df) == 2
+        # Numeric spot-checks on the per-element metric formula:
+        # S is reduction: (0.1 − 0.05)/|0.1|*100 = 50% reduction
+        # Si is additive: (0.1 − 0.2)/|0.2|*100 = -50% growth (i.e. 50% growth)
+        assert abs(df.iloc[0]["Sulfur (S)_reduction_pct"] - 50.0) < 1e-9
+        assert abs(df.iloc[0]["Silicon (Si)_growth_pct"] - (-50.0)) < 1e-9
 
     def test_empty_list(self):
         df = build_pareto_rows([])
         assert df.empty
 
     def test_single_solution(self):
+        # Iron is not in OPTIMIZATION_ELEMENTS, so it falls back to the neutral
+        # change_pct naming. This documents the fallback behavior.
         sol = ParetoOptimum(
             solution_id=0,
             input_values={"Fe": 0.5},
@@ -130,3 +142,8 @@ class TestBuildParetoRows:
         df = build_pareto_rows([sol])
         assert df.iloc[0]["Fe_input"] == 0.5
         assert df.iloc[0]["Fe_output"] == 0.3
+        # Fe has no registered element class, so it gets the neutral
+        # change_pct column (not _reduction_pct or _growth_pct).
+        assert "Fe_change_pct" in df.columns
+        assert "Fe_reduction_pct" not in df.columns
+        assert "Fe_growth_pct" not in df.columns

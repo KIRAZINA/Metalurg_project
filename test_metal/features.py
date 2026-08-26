@@ -40,19 +40,52 @@ def build_optimization_targets(
     results: list[OLSResult], df: pd.DataFrame
 ) -> dict[str, tuple[str, float]]:
     targets: dict[str, tuple[str, float]] = {}
-    s_models = find_models_for_element(results, ColumnName.S)
-    si_models = find_models_for_element(results, ColumnName.SI)
-    if s_models:
-        s_target = float(df["steel_S_after"].min())
-        targets["Sulfur (S)"] = (s_models[0].x_col, s_target)
-    if si_models:
-        si_target = float(df["steel_Si_after"].min())
-        targets["Silicon (Si)"] = (si_models[0].x_col, si_target)
+    for label, element, _cls in OPTIMIZATION_ELEMENTS:
+        element_models = find_models_for_element(results, element)
+        if not element_models:
+            continue
+        y_col = f"steel_{element.value}_after"
+        if y_col not in df.columns:
+            continue
+        model = element_models[0]
+        x_min = float(model.x.min())
+        x_max = float(model.x.max())
+        achievable_min = min(
+            model.intercept + model.slope * x_min,
+            model.intercept + model.slope * x_max,
+        )
+        targets[label] = (model.x_col, float(achievable_min))
     return targets
 
 
 TARGET_AFTER = "steel_S_after"
 TARGET_BEFORE = "steel_S_before"
+
+# Domain class of each element, used to choose the per-element change-metric
+# sign convention. "reduction" elements are impurities the refining step is
+# intended to lower (positive metric = more removed = better). "additive"
+# elements are intentionally added during the heat (positive metric = more
+# added = worse, by name). A third value "neutral" would use the raw signed
+# difference with no value judgment; not currently used.
+ElementClass = str  # "reduction" | "additive" | "neutral"
+
+# Elements driven through inverse regression to produce the Pareto front.
+# Each entry pairs a human-readable label with the matching ColumnName enum
+# value and the element's domain class so the before/after columns and the
+# per-element metric sign convention derive from a single source of truth.
+OPTIMIZATION_ELEMENTS: list[tuple[str, ColumnName, ElementClass]] = [
+    ("Sulfur (S)", ColumnName.S, "reduction"),
+    ("Silicon (Si)", ColumnName.SI, "additive"),
+]
+
+
+def optimization_model_columns() -> list[tuple[str, str, str, ElementClass]]:
+    """Return ``(element_label, before_x_col, after_y_col, element_class)`` tuples."""
+    return [
+        (label, f"steel_{element.value}_before", f"steel_{element.value}_after", cls)
+        for label, element, cls in OPTIMIZATION_ELEMENTS
+    ]
+
 
 COLUMN_NAMES: list[str] = [
     "sample_number",
@@ -99,6 +132,7 @@ COLUMN_NAMES: list[str] = [
     "add_FeTi_before",
     "add_AlGr_before",
     "sulfur_reduction_ratio",
+    "sample_number_after",
     "steel_C_after",
     "steel_Mn_after",
     "steel_Si_after",
@@ -128,7 +162,6 @@ COLUMN_NAMES: list[str] = [
     "slag_S_after",
     "slag_basicity_after",
     "total_weight",
-    "cutting_total",
     "heat_number",
     "upk_number",
     "processing_time",

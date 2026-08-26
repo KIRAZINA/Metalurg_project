@@ -33,7 +33,7 @@ jobs:
 
       - name: Type check with mypy
         run: |
-          mypy --strict test_metal/
+          mypy --strict --python-version ${{ matrix.python-version }} test_metal/
 
       - name: Run tests with coverage
         run: |

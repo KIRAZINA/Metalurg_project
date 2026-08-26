@@ -9,13 +9,10 @@ from test_metal.config import ProjectConfig
 from test_metal.features import (
     COLUMN_NAMES,
     PREDICTORS_AFTER,
-    PREDICTORS_BEFORE,
     TARGET_AFTER,
-    TARGET_BEFORE,
 )
 from test_metal.pipeline import PipelineResult, run_pipeline, run_pipeline_with_io
 from test_metal.preprocessing import preprocess
-from test_metal.testing_utils import train_linear, train_tree
 
 
 def synthetic_df(n: int = 200) -> pd.DataFrame:
@@ -82,9 +79,11 @@ class TestPipeline:
 
 class TestRunPipelineWithIO:
     @patch("test_metal.pipeline.load_excel")
-    def test_returns_pipeline_result(self, mock_load):
+    def test_returns_pipeline_result(self, mock_load, tmp_path):
         mock_load.return_value = synthetic_df(30)
-        result = run_pipeline_with_io(Path("test.xls"))
+        result = run_pipeline_with_io(
+            Path("test.xls"), config=ProjectConfig(outputs_dir=tmp_path / "io_outputs")
+        )
         assert isinstance(result, PipelineResult)
         assert len(result.models) > 0
 
@@ -144,19 +143,3 @@ class TestPreprocessShapes:
         dfp = preprocess(df)
         assert not dfp.isna().any().any()
         assert set(PREDICTORS_AFTER + [TARGET_AFTER]).issubset(set(dfp.columns))
-
-    def test_models_after(self):
-        df = synthetic_df()
-        dfp = preprocess(df)
-        lin = train_linear(dfp, PREDICTORS_AFTER, TARGET_AFTER)
-        tree = train_tree(dfp, PREDICTORS_AFTER, TARGET_AFTER)
-        assert "mse" in lin and "r2" in lin and "cv_r2_mean" in lin
-        assert "mse" in tree and "r2" in tree
-
-    def test_models_before(self):
-        df = synthetic_df()
-        dfp = preprocess(df)
-        lin = train_linear(dfp, PREDICTORS_BEFORE, TARGET_BEFORE)
-        tree = train_tree(dfp, PREDICTORS_BEFORE, TARGET_BEFORE)
-        assert "mse" in lin and "r2" in lin and "cv_r2_mean" in lin
-        assert "mse" in tree and "r2" in tree

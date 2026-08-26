@@ -6,11 +6,8 @@ Tests boundary conditions, error handling, and edge cases.
 import numpy as np
 import pytest
 
-from test_metal.optimization import (
-    InverseRegression,
-    OptimizationResult,
-    ParetoOptimum,
-)
+from test_metal.core.models import OptimizationResult, ParetoOptimum
+from test_metal.core.optimization import InverseRegression
 
 
 class TestInverseRegressionEdgeCases:
@@ -70,7 +67,7 @@ class TestInverseRegressionEdgeCases:
 
     def test_negative_slope_model(self):
         """Test with negative slope (inverse relationship)."""
-        from test_metal.modeling import OLSResult
+        from test_metal.core.models import OLSResult
 
         # Model where higher input leads to lower output
         model = OLSResult(
@@ -106,7 +103,7 @@ class TestInverseRegressionEdgeCases:
 
     def test_very_small_slope(self):
         """Test with very small slope (weak relationship)."""
-        from test_metal.modeling import OLSResult
+        from test_metal.core.models import OLSResult
 
         model = OLSResult(
             x_col="test_x",

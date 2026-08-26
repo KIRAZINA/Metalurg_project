@@ -2,14 +2,14 @@ import subprocess
 import sys
 
 
-def _cli_command() -> list[str]:
-    return [sys.executable, "-m", "test_metal"]
+def _cli_command(output_dir) -> list[str]:
+    return [sys.executable, "-m", "test_metal", "--output", str(output_dir)]
 
 
 class TestCLI:
-    def test_help_flag(self):
+    def test_help_flag(self, tmp_path):
         result = subprocess.run(
-            [*_cli_command(), "--help"],
+            [*_cli_command(tmp_path), "--help"],
             capture_output=True,
             text=True,
         )
@@ -18,18 +18,18 @@ class TestCLI:
         assert "--output" in result.stdout
         assert "--mode" in result.stdout
 
-    def test_mode_choices_after_and_before(self):
+    def test_mode_choices_after_and_before(self, tmp_path):
         result = subprocess.run(
-            [*_cli_command(), "--help"],
+            [*_cli_command(tmp_path), "--help"],
             capture_output=True,
             text=True,
         )
         assert "after" in result.stdout
         assert "before" in result.stdout
 
-    def test_file_not_found_error_handled(self):
+    def test_file_not_found_error_handled(self, tmp_path):
         result = subprocess.run(
-            [*_cli_command(), "--file", "nonexistent_file.xls"],
+            [*_cli_command(tmp_path), "--file", "nonexistent_file.xls"],
             capture_output=True,
             text=True,
         )
@@ -43,17 +43,17 @@ class TestCLI:
         )
         assert result.returncode == 0
 
-    def test_version_not_defined(self):
+    def test_version_not_defined(self, tmp_path):
         result = subprocess.run(
-            [*_cli_command(), "--help"],
+            [*_cli_command(tmp_path), "--help"],
             capture_output=True,
             text=True,
         )
         assert result.returncode == 0
 
-    def test_output_default_value(self):
+    def test_output_default_value(self, tmp_path):
         result = subprocess.run(
-            [*_cli_command(), "--help"],
+            [*_cli_command(tmp_path), "--help"],
             capture_output=True,
             text=True,
         )

@@ -11,7 +11,6 @@ from test_metal.plotting import (  # noqa: E402
     heatmap_corr,
     plot_pareto_front,
     regression_ci_plot,
-    regression_plot,
     save_figure_multiformat,
     save_figure_png_only,
 )
@@ -49,14 +48,6 @@ class TestSaveFigurePNGOnly:
         assert path.exists()
         assert path.suffix == ".png"
         plt.close()
-
-
-class TestRegressionPlot:
-    def test_returns_path(self, tmp_path):
-        y_true = pd.Series([1.0, 2.0, 3.0])
-        y_pred = [1.1, 1.9, 3.2]
-        path = regression_plot(y_true, y_pred, "title", "x", "y", str(tmp_path), "reg_plot")
-        assert Path(path).exists()
 
 
 class TestRegressionCIPlot:
@@ -135,6 +126,10 @@ class TestPlotParetoFront:
                 self.total_impurity_input = i
                 self.total_impurity_output = o
                 self.efficiency = e
+                # plot_pareto_front now colors by S_reduction_pct derived
+                # from the per-element input_values/output_values dicts.
+                self.input_values = {"Sulfur (S)": 0.1, "Silicon (Si)": 0.05}
+                self.output_values = {"Sulfur (S)": 0.08, "Silicon (Si)": 0.06}
 
         solutions = [
             MockSolution(0.5, 0.3, 40.0),
